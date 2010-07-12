@@ -37,13 +37,11 @@ def subrepo(ui, repo, **opts):
 	optFetch = opts.get('fetch', None)
 	
 	if optList:
-	#if cmd == "list":
 		ui.status("listing subrepos:\n-------\n")
 		listSubrepos(ui, repo)
 		ui.status("-------\n")
 	
 	if optReclone:
-	#if cmd == "reclone":
 		ui.status("checking for missing subrepo clones...\n")
 		rs = getSubreposFromHgsub(repo)
 		for r in rs:
@@ -54,7 +52,6 @@ def subrepo(ui, repo, **opts):
 		ui.status("finishing recloning\n")
 	
 	if optPull:
-	#if cmd == "pull":
 		ui.status("pulling all subrepos...\n");
 		rs = getSubreposFromHgsub(repo)
 		for r in rs:
@@ -67,7 +64,6 @@ def subrepo(ui, repo, **opts):
 		ui.status("---------------------------\n")
 
 	if optUpdate:
-	#if cmd == "pull":
 		ui.status("updating all subrepos to tip, watch output for necessity of user intervention...\n");
 		rs = getSubreposFromHgsub(repo)
 		for r in rs:
@@ -80,7 +76,6 @@ def subrepo(ui, repo, **opts):
 		ui.status("---------------------------\n")
 
 	if optFetch:
-	#if cmd == "fetch":
 		ui.status("fetching all subrepos, watch output for necessity of user intervention...\n");
 		rs = getSubreposFromHgsub(repo)
 		for r in rs:
@@ -116,8 +111,6 @@ def recloneSubrepo(ui, local, remote):
 	
 # Macro extension meta-data
 cmdtable = {
-	# "command-name": (function-call, options-list, help-string)
-    #"subrepo": (subrepo, [('ls', 'list', None, 'list current subrepos')], "hg subrepo [cmd]")
 	"subrepo": 
 		(subrepo, 
 		 [('l', 'list', None, _('list registered subrepositories')),
