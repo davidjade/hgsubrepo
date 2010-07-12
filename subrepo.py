@@ -1,3 +1,10 @@
+# fetch.py - pull and merge remote changes
+#
+# Copyright 2010 Andrew Petersen <sen.of.peter@gmail.com>
+#
+# This software may be used and distributed according to the terms of the
+# GNU General Public License version 2 or any later version.
+
 '''allows for easy(er) management of mutiple subrepositories at once
 
 For example:
@@ -11,9 +18,7 @@ will tell each subrepository to fetch.
 
 from mercurial.i18n import _
 from mercurial import hg, dispatch, re, util
-import shlex, subprocess
-import os 
-import os.path
+import shlex, subprocess, os
 
 def subrepo(ui, repo, **opts):
 	'''allows for easy(er) management of mutiple subrepositories at once
@@ -37,7 +42,7 @@ def subrepo(ui, repo, **opts):
 	optList = opts.get('list', None)
 	optReclone = opts.get('reclone', None)
 	optPull = opts.get('pull', None)
-	optUpdate = opts.get('pull', None)
+	optUpdate = opts.get('update', None)
 	optFetch = opts.get('fetch', None)
 	
 	if optList:
@@ -72,7 +77,7 @@ def subrepo(ui, repo, **opts):
 
 	if optUpdate:
 	#if cmd == "pull":
-		ui.status("updating all subrepos to tip...\n");
+		ui.status("updating all subrepos to tip, watch output for necessity of user intervention...\n");
 		rs = getSubreposFromHgsub(repo)
 		for r in rs:
 			if os.path.exists(r[0]):
@@ -85,7 +90,7 @@ def subrepo(ui, repo, **opts):
 
 	if optFetch:
 	#if cmd == "fetch":
-		ui.status("fetching all subrepos. watch output for necessity of user intervention...\n");
+		ui.status("fetching all subrepos, watch output for necessity of user intervention...\n");
 		rs = getSubreposFromHgsub(repo)
 		for r in rs:
 			if os.path.exists(r[0]):
