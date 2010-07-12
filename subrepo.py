@@ -1,4 +1,4 @@
-# fetch.py - pull and merge remote changes
+# subrepo.py - perform batch-like commands on subrepos
 #
 # Copyright 2010 Andrew Petersen <sen.of.peter@gmail.com>
 #
