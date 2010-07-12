@@ -43,48 +43,44 @@ def subrepo(ui, repo, **opts):
 
     if optReclone:
         ui.status("checking for missing subrepo clones...\n")
-        rs = getSubreposFromHgsub(repo)
-        for r in rs:
-            if os.path.exists(r[0]):
-                ui.status("* " + r[0] + " exists\n")
+        for local, remote in getSubreposFromHgsub(repo):
+            if os.path.exists(local):
+                ui.status("* " + local + " exists\n")
             else:
-                recloneSubrepo(ui, r[0], r[1])
+                recloneSubrepo(ui, local, remote)
         ui.status("finishing recloning\n")
 
     if optPull:
         ui.status("pulling all subrepos...\n");
-        rs = getSubreposFromHgsub(repo)
-        for r in rs:
-            if os.path.exists(r[0]):
+        for local, remote in getSubreposFromHgsub(repo):
+            if os.path.exists(local):
                 ui.status("---------------------------\n")
-                pout = util.popen("cd " + r[0] + " && hg pull && cd ..")
+                pout = util.popen("cd " + local + " && hg pull && cd ..")
                 ui.status(pout.read())
             else:
-                recloneSubrepo(ui, r[0], r[1])
+                recloneSubrepo(ui, local, remote)
         ui.status("---------------------------\n")
 
     if optUpdate:
         ui.status("updating all subrepos to tip, watch output for necessity of user intervention...\n");
-        rs = getSubreposFromHgsub(repo)
-        for r in rs:
-            if os.path.exists(r[0]):
+        for local, remote in getSubreposFromHgsub(repo):
+            if os.path.exists(local):
                 ui.status("---------------------------\n")
-                pout = util.popen("cd " + r[0] + " && hg update && cd ..")
+                pout = util.popen("cd " + local + " && hg update && cd ..")
                 ui.status(pout.read())
             else:
-                recloneSubrepo(ui, r[0], r[1])
+                recloneSubrepo(ui, local, remote)
         ui.status("---------------------------\n")
 
     if optFetch:
         ui.status("fetching all subrepos, watch output for necessity of user intervention...\n");
-        rs = getSubreposFromHgsub(repo)
-        for r in rs:
-            if os.path.exists(r[0]):
+        for local, remote in getSubreposFromHgsub(repo):
+            if os.path.exists(local):
                 ui.status("---------------------------\n")
-                pout = util.popen("cd " + r[0] + " && hg fetch && cd ..")
+                pout = util.popen("cd " + local + " && hg fetch && cd ..")
                 ui.status(pout.read())
             else:
-                recloneSubrepo(ui, r[0], r[1])
+                recloneSubrepo(ui, local, remote)
         ui.status("---------------------------\n")
         ui.status("finished fetching, be sure to commit parent repo to update .hgsubstate\n")
 
@@ -100,8 +96,8 @@ def getSubreposFromHgsub(repo):
     return result
 
 def listSubrepos(ui, repo):
-    for r in getSubreposFromHgsub(repo):
-        ui.status( "* " + r[0] + "\t@ " + r[1] + "\n" )
+    for local, remote in getSubreposFromHgsub(repo):
+        ui.status( "* " + local + "\t@ " + remote + "\n" )
 
 def recloneSubrepo(ui, local, remote):
     # todo: clone at the revision specified in .hgsubstate?
