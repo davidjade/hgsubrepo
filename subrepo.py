@@ -5,16 +5,7 @@
 # This software may be used and distributed according to the terms of the
 # GNU General Public License version 2 or any later version.
 
-'''allows for easy(er) management of mutiple subrepositories at once
-
-For example:
-
-  hg subrepo fetch
-
-will tell each subrepository to fetch. 
-
-
-'''
+'''allows for easy(er) management of mutiple subrepositories at once'''
 
 from mercurial.i18n import _
 from mercurial import hg, dispatch, re, util
