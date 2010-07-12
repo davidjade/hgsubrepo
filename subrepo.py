@@ -46,7 +46,7 @@ def subrepo(ui, repo, **opts):
         ui.status("checking for missing subrepo clones...\n")
         for local, remote in getSubreposFromHgsub(repo):
             if os.path.exists(local):
-                ui.status("* " + local + " exists\n")
+                ui.status("* %s exists\n" % local)
             else:
                 recloneSubrepo(ui, local, remote)
         ui.status("finishing recloning\n")
@@ -91,11 +91,11 @@ def getSubreposFromHgsub(repo):
 
 def listSubrepos(ui, repo):
     for local, remote in getSubreposFromHgsub(repo):
-        ui.status( "* " + local + "\t@ " + remote + "\n" )
+        ui.status( "* %s\t@ %s\n" % (local, remote))
 
 def recloneSubrepo(ui, local, remote):
     # todo: clone at the revision specified in .hgsubstate?
-    ui.status("* " + local + " is missing, recloning...\n");
+    ui.status("* %s is missing, recloning...\n" % local);
     hg.clone(ui, remote, dest=local)
 
 # Macro extension meta-data
