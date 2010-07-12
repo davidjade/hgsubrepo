@@ -86,8 +86,7 @@ def subrepo(ui, repo, **opts):
         ui.status("finished fetching, be sure to commit parent repo to update .hgsubstate\n")
 
 def getSubreposFromHgsub(repo):
-    root = repo.root
-    f = open(root + "/.hgsub")
+    f = repo.wopener('.hgsub')
     return [map(string.strip, line.split('=')) for line in f]
 
 def listSubrepos(ui, repo):
