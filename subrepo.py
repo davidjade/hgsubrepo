@@ -1,6 +1,6 @@
 # subrepo.py - perform batch-like commands on subrepos
 #
-# Copyright 2010 Andrew Petersen <sen.of.peter@gmail.com>
+# Copyright 2010 Andrew Petersen <KirbySaysHi@gmail.com>
 #
 # This software may be used and distributed according to the terms of the
 # GNU General Public License version 2 or any later version.
