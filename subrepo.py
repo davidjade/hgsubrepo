@@ -8,8 +8,9 @@
 '''allows for easy(er) management of mutiple subrepositories at once'''
 
 from mercurial.i18n import _
-from mercurial import hg, dispatch, re, util
-import subprocess, os
+from hgext.fetch import fetch
+from mercurial import hg
+import os
 
 def subrepo(ui, repo, **opts):
     '''allows for easy(er) management of mutiple subrepositories at once
@@ -55,8 +56,8 @@ def subrepo(ui, repo, **opts):
         for local, remote in getSubreposFromHgsub(repo):
             if os.path.exists(local):
                 ui.status("---------------------------\n")
-                pout = util.popen("cd " + local + " && hg pull && cd ..")
-                ui.status(pout.read())
+                repo = hg.repository(ui, local)
+                repo.pull(remote)
             else:
                 recloneSubrepo(ui, local, remote)
         ui.status("---------------------------\n")
@@ -66,8 +67,8 @@ def subrepo(ui, repo, **opts):
         for local, remote in getSubreposFromHgsub(repo):
             if os.path.exists(local):
                 ui.status("---------------------------\n")
-                pout = util.popen("cd " + local + " && hg update && cd ..")
-                ui.status(pout.read())
+                repo = hg.repository(ui, local)
+                repo.update(remote)
             else:
                 recloneSubrepo(ui, local, remote)
         ui.status("---------------------------\n")
@@ -77,8 +78,8 @@ def subrepo(ui, repo, **opts):
         for local, remote in getSubreposFromHgsub(repo):
             if os.path.exists(local):
                 ui.status("---------------------------\n")
-                pout = util.popen("cd " + local + " && hg fetch && cd ..")
-                ui.status(pout.read())
+                repo = hg.repository(ui, local)
+                fetch(ui, repo, source=remote)
             else:
                 recloneSubrepo(ui, local, remote)
         ui.status("---------------------------\n")
