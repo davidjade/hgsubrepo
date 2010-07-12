@@ -9,7 +9,7 @@
 
 from mercurial.i18n import _
 from mercurial import hg, dispatch, re, util
-import shlex, subprocess, os
+import subprocess, os
 
 def subrepo(ui, repo, **opts):
     '''allows for easy(er) management of mutiple subrepositories at once
@@ -102,8 +102,7 @@ def listSubrepos(ui, repo):
 def recloneSubrepo(ui, local, remote):
     # todo: clone at the revision specified in .hgsubstate?
     ui.status("* " + local + " is missing, recloning...\n");
-    args = shlex.split("clone "+remote+" "+local)
-    dispatch._runcatch(ui, args)
+    hg.clone(ui, remote, dest=local)
 
 # Macro extension meta-data
 cmdtable = {
