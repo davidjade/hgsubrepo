@@ -86,6 +86,8 @@ def subrepo(ui, repo, **opts):
         ui.status("finished fetching, be sure to commit parent repo to update .hgsubstate\n")
 
 def getSubreposFromHgsub(repo):
+    # XXX arguably this could, or should use:
+    #  mercurial.subrepo.state(repo['.'])
     f = repo.wopener('.hgsub')
     return [map(string.strip, line.split('=')) for line in f]
 
