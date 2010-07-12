@@ -35,6 +35,8 @@ def subrepo(ui, repo, **opts):
     optReclone = opts.get('reclone', None)
     optPull = opts.get('pull', None)
     optUpdate = opts.get('update', None)
+    optIncoming = opts.get('incoming', None)
+    optOutgoing = opts.get('outgoing', None)
     optFetch = opts.get('fetch', None)
 
     if optList:
@@ -73,6 +75,27 @@ def subrepo(ui, repo, **opts):
                 recloneSubrepo(ui, local, remote)
         ui.status("---------------------------\n")
 
+    if optIncoming:
+        for local, remote in getSubreposFromHgsub(repo):
+            if os.path.exists(local):
+                ui.status("---------------------------\n")
+                pout = util.popen("cd " + local + " && hg incoming && cd ..")
+                ui.status(pout.read())
+            else:
+                recloneSubrepo(ui, local, remote)
+        ui.status("---------------------------\n")
+
+    if optOutgoing:
+        #ui.status("updating all subrepos to tip, watch output for necessity of user intervention...\n");
+        for local, remote in getSubreposFromHgsub(repo):
+            if os.path.exists(local):
+                ui.status("---------------------------\n")
+                pout = util.popen("cd " + local + " && hg outgoing && cd ..")
+                ui.status(pout.read())
+            else:
+                recloneSubrepo(ui, local, remote)
+        ui.status("---------------------------\n")
+
     if optFetch:
         ui.status("fetching all subrepos, watch output for necessity of user intervention...\n");
         for local, remote in getSubreposFromHgsub(repo):
@@ -106,6 +129,8 @@ cmdtable = {
         (subrepo,
          [('l', 'list', None, _('list registered subrepositories')),
           ('c', 'reclone', None, _('reclone all missing but registered subrepositories (as defined in .hgsub), leaving existing ones intact; this does not look at nor modify .hgsubstate!')),
+          ('i', 'incoming', None, _('call hg incoming within each subrepository')),
+          ('o', 'outgoing', None, _('call hg outgoing within each subrepository')),
           ('p', 'pull', None, _('call hg pull within each subrepository')),
           ('u', 'update', None, _('call hg update within each subrepository')),
           ('f', 'fetch', None, _('call hg fetch within each subrepository'))
