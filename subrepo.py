@@ -10,7 +10,7 @@
 from mercurial.i18n import _
 from hgext.fetch import fetch
 from mercurial import hg
-import os
+import os, string
 
 def subrepo(ui, repo, **opts):
     '''allows for easy(er) management of mutiple subrepositories at once
@@ -88,13 +88,7 @@ def subrepo(ui, repo, **opts):
 def getSubreposFromHgsub(repo):
     root = repo.root
     f = open(root + "/.hgsub")
-    d = f.readlines()
-    result = [];
-    for x in d:
-        x = x.split('=')
-        result.append([x[0].strip(), x[1].strip()])
-    f.close()
-    return result
+    return [map(string.strip, line.split('=')) for line in f]
 
 def listSubrepos(ui, repo):
     for local, remote in getSubreposFromHgsub(repo):
