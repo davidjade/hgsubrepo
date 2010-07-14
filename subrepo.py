@@ -40,6 +40,7 @@ def subrepo(ui, repo, **opts):
     optFetch = opts.get('fetch', None)
     optStatus = opts.get('status', None)
     optNoRecurse = opts.get('norecurse', None)
+    optMap = opts.get('map', None)
 
     if optList:
         ui.status("listing subrepos:\n-------\n")
@@ -88,6 +89,12 @@ def subrepo(ui, repo, **opts):
         ui.status("getting status for all subrepos\n")
         func = lambda repoPath, remotePath: doHgTextCommand(ui, repoPath, remotePath, "status")
         doCommand(ui, repo, func, False, optNoRecurse)
+        ui.status("---------------------------\n")
+
+    if optMap:
+        ui.status("mapping '%s' for all subrepos\n" % opts['map'])
+        func = lambda repoPath, remotePath: doHgTextCommand(ui, repoPath, remotePath, opts['map'])
+        doCommand(ui, repo, func, True, optNoRecurse)
         ui.status("---------------------------\n")
 
 
@@ -151,6 +158,7 @@ cmdtable = {
           ('u', 'update', None, _('call hg update within each subrepository')),
           ('f', 'fetch', None, _('call hg fetch within each subrepository')),
           ('s', 'status', None, _('call hg status within each subrepository')),
+          ('m', 'map', "", _('call hg \"CommandArgument\" within each subrepository')),
           ('', 'norecurse', None, _('do not operate recursively within each subrepository'))
          ],
          _('hg subrepo [ACTION]'))
