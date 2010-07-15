@@ -51,7 +51,10 @@ def subrepo(ui, repo, action=None, **opts):
     optRecurse = opts.get('recurse', None)
     optAll = opts.get('all', None)
 
+    # force optAll mode for user-defined actions
     forceAllForCommands = ui.config("subrepo", "forceAllForCommands")
+    if not forceAllForCommands == None:
+        if action in (forceAllForCommands.split(';')): optAll = True
 
     if optReclone:
         ui.status("checking for missing subrepo clones...\n")
@@ -64,9 +67,6 @@ def subrepo(ui, repo, action=None, **opts):
         commands.help_(ui, "subrepo")
 
     elif action == "list":
-        # force optAll mode for user-defined actions
-        if not forceAllForCommands == None:
-            if "list" in (forceAllForCommands.split(';')): optAll = True
         ui.status("listing subrepos:\n-------\n")
         func = lambda ui, repoPath, remotePath: ListRepo(ui, repoPath, remotePath)
         doCommand(ui, repo, func, (optRecurse or optAll), False)
@@ -90,9 +90,6 @@ def subrepo(ui, repo, action=None, **opts):
         #
 
     else:
-        # force optAll mode for user-defined actions
-        if not forceAllForCommands == None:
-            if action in (forceAllForCommands.split(';')): optAll = True
 
         # do action for all subrepos
         ui.status("doing '%s' for all subrepos, watch output for necessity of user intervention...\n" % action)
