@@ -17,7 +17,13 @@ def subrepo(ui, repo, action=None, **opts):
 
     This extension provides the ability to batch-process subrepositories
     with hg commands. Each command generally loops through the 
-    subrepositories listed in .hgsub, and simply calls an hg action.
+    subrepositories listed in .hgsub, and simply calls an hg action 
+    (as specified by ACTION)
+
+    Note that ACTION can include parameters if quoted, e.g. "pull -rev xxx"
+
+    There is also a built-in special action that can be invoked, "list".
+    It will list all of the subrepos that are defined and then quit.
 
     Subrepositories can be complicated, and this extension should not be
     used as a bludgeon, but rather a scalpal. It is for the occasions that
@@ -29,19 +35,23 @@ def subrepo(ui, repo, action=None, **opts):
     and always remember that updating subrepos will usually require a commit
     of the parent repo in order to update the .hgsubstate file (and thus the
     revision the subrepo is locked at).
+    
+    Configuration:
+    
+    You can designate that certain actions always run with the -all option.
+    This is useful for actions such as status, incoming, outgoing, etc...
+    To designate these, place something like this in your config settings:
+    
+    [subrepo]
+
+    forceAllForCommands = list;status;incoming;outgoing;summary
     '''
 
-    optList = opts.get('list', None)
     optReclone = opts.get('reclone', None)
     optRecurse = opts.get('recurse', None)
     optAll = opts.get('all', None)
 
-    if optList:
-        ui.status("listing subrepos:\n-------\n")
-        func = lambda repoPath, remotePath: ListRepo(ui, repoPath, remotePath)
-        doCommand(ui, repo, func, (optRecurse or optAll), False)	# never use doForAll for listing subrepos
-        ui.status("-------\n")
-        return
+    forceAllForCommands = ui.config("subrepo", "forceAllForCommands")
 
     if optReclone:
         ui.status("checking for missing subrepo clones...\n")
@@ -52,15 +62,41 @@ def subrepo(ui, repo, action=None, **opts):
     if action == None:
         ui.status("hg subrepo: missing action\n")
         commands.help_(ui, "subrepo")
+
+    elif action == "list":
+        # force optAll mode for user-defined actions
+        if not forceAllForCommands == None:
+            if "list" in (forceAllForCommands.split(';')): optAll = True
+        ui.status("listing subrepos:\n-------\n")
+        func = lambda ui, repoPath, remotePath: ListRepo(ui, repoPath, remotePath)
+        doCommand(ui, repo, func, (optRecurse or optAll), False)
+        ui.status("-------\n")
+        return
+
+        # Note: if you want to handle an action with a custom handler, here is where you would trap it
+        # before the default generic doHgTextCommand handler is called for the action. You should define a lambda
+        # that takes three parameters:
+        #     ui         : the ui object to use for status messages
+        #     repoPath   : the relative path to the repo to operate on
+        #     remotePath : the remote path for the subrepo
+        #
+        # This lambda can then use any helper function that you write to handle the action, optionally
+        # capturing and passing any other parameters like repo, options, etc...
+        #
+        # elif action == "ActionNameToTrap":
+        #     func = lambda ui, repoPath, remotePath: yourCustomActionFunction(ui, repoPath, repo, opts, etc...)
+        #     doCommand(ui, repo, func, (optRecurse or optAll), optAll)
+        #     return
+        #
+
     else:
         # force optAll mode for user-defined actions
-        forceAllForCommands = ui.config("subrepo", "forceAllForCommands")
         if not forceAllForCommands == None:
             if action in (forceAllForCommands.split(';')): optAll = True
 
         # do action for all subrepos
         ui.status("doing '%s' for all subrepos, watch output for necessity of user intervention...\n" % action)
-        func = lambda repoPath, remotePath: doHgTextCommand(ui, repoPath, action)
+        func = lambda ui, repoPath, remotePath: doHgTextCommand(ui, repoPath, action)
         doCommand(ui, repo, func, (optRecurse or optAll), optAll)
         ui.status("---------------------------\n")
 
@@ -70,21 +106,21 @@ def subrepo(ui, repo, action=None, **opts):
 
 # execute a function for each subrepo with optional recloning and optional recursion
 # func is defined as func(localPath, remotePath)
-def doCommand(ui, repo, func, recurse, doForRoot, relativePath=""):
-    if relativePath == "" and doForRoot:
-        func(".", ui.config('paths', 'default'))
+def doCommand(ui, repo, func, recurse, all, relativePath=""):
+    if relativePath == "" and all:
+        func(ui, ".", ui.config('paths', 'default'))
     if os.path.exists(os.path.join(repo.root, ".hgsub")):
         for local, remote in getSubreposFromHgsub(repo):
             subrepoPath = os.path.join(relativePath, local)
             if os.path.exists(subrepoPath):
-                func(subrepoPath, remote)
+                func(ui, subrepoPath, remote)
                 if recurse:
-                    doCommand(ui, hg.repository(ui, subrepoPath, False), func, recurse, doForRoot, subrepoPath)
+                    doCommand(ui, hg.repository(ui, subrepoPath, False), func, recurse, all, subrepoPath)
             else:
                 ui.status("* %s is missing (perhaps you should reclone)\n" % subrepoPath)
 
 
-
+# generic helper to execute a hg command
 def doHgTextCommand(ui, repoPath, commandText):
     ui.status("---------------------------\n")
     ui.status("* %s\n" % repoPath)
@@ -95,10 +131,12 @@ def doHgTextCommand(ui, repoPath, commandText):
     os.chdir(currentwd)
 
 
+# helper to list a subrepo's information
 def ListRepo(ui, repoPath, remotePath):
-    ui.status("* %s\t@ %s\n" %(repoPath, remotePath))
+    ui.status("* %s\t@ %s\n" % (repoPath, remotePath))
 
 
+# produce a list of subrepos for a repo
 def getSubreposFromHgsub(repo):
     # XXX arguably this could, or should use:
     #  mercurial.subrepo.state(repo['.'])
@@ -119,6 +157,7 @@ def doReclone(ui, repo, recurse, relativePath=""):
                 doReclone(ui,  hg.repository(ui, subrepoPath, False), recurse, subrepoPath)
 
 
+# clone a single repo
 def recloneSubrepo(ui, local, remote):
     # todo: clone at the revision specified in .hgsubstate?
     ui.status("* %s is missing, recloning...\n" % local);
@@ -130,12 +169,11 @@ cmdtable = {
     "subrepo":
         (subrepo,
          [
-          ('l', 'list', None, _('list registered subrepositories then quit')),
           ('r', 'recurse', None, _('operate recursively within each subrepository')),
           ('a', 'all', None, _('operate in root repo as well as recursively within each subrepository')),
           ('c', 'reclone', None, _('reclone all missing but registered subrepositories (as defined in .hgsub), ' +
 		  'leaving existing ones intact; this does not look at nor modify .hgsubstate! ' +
 		  'If an ACTION is specified it will execute after recloning all missing subrepos.')),
          ],
-         _('hg subrepo [-l] [-r] [-a] [-c] [ACTION] '))
+         _('hg subrepo [-r] [-a] [-c] [ACTION] '))
 }
