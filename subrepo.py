@@ -50,6 +50,7 @@ def subrepo(ui, repo, action=None, **opts):
     optReclone = opts.get('reclone', None)
     optRecurse = opts.get('recurse', None)
     optAll = opts.get('all', None)
+    optBottomUp = opts.get('bottomup', None)
 
     # force optAll mode for user-defined actions
     forceAllForCommands = ui.config("subrepo", "forceAllForCommands")
@@ -94,7 +95,10 @@ def subrepo(ui, repo, action=None, **opts):
         # do action for all subrepos
         ui.status("doing '%s' for all subrepos, watch output for necessity of user intervention...\n" % action)
         func = lambda ui, repoPath, remotePath: doHgTextCommand(ui, repoPath, action)
-        doCommand(ui, repo, func, (optRecurse or optAll), optAll)
+        if optBottomUp:
+            doCommandReverse(ui, repo, func, (optRecurse or optAll), optAll)
+        else:
+            doCommand(ui, repo, func, (optRecurse or optAll), optAll)
         ui.status("---------------------------\n")
 
         # special messages for some actions
@@ -115,6 +119,22 @@ def doCommand(ui, repo, func, recurse, all, relativePath=""):
                     doCommand(ui, hg.repository(ui, subrepoPath, False), func, recurse, all, subrepoPath)
             else:
                 ui.status("* %s is missing (perhaps you should reclone)\n" % subrepoPath)
+
+				
+# execute a function for each subrepo with optional recloning and optional recursion, in bottom up or reverse order
+# func is defined as func(localPath, remotePath)
+def doCommandReverse(ui, repo, func, recurse, all, relativePath=""):
+    if os.path.exists(os.path.join(repo.root, ".hgsub")):
+        for local, remote in getSubreposFromHgsub(repo):
+            subrepoPath = os.path.join(relativePath, local)
+            if os.path.exists(subrepoPath):
+                if recurse:
+                    doCommandReverse(ui, hg.repository(ui, subrepoPath, False), func, recurse, all, subrepoPath)
+                func(ui, subrepoPath, remote)
+            else:
+                ui.status("* %s is missing (perhaps you should reclone)\n" % subrepoPath)
+    if relativePath == "" and all:
+        func(ui, ".", ui.config('paths', 'default'))
 
 
 # generic helper to execute a hg command
@@ -171,6 +191,7 @@ cmdtable = {
           ('c', 'reclone', None, _('reclone all missing but registered subrepositories (as defined in .hgsub), ' +
 		  'leaving existing ones intact; this does not look at nor modify .hgsubstate! ' +
 		  'If an ACTION is specified it will execute after recloning all missing subrepos.')),
+		  ('b', 'bottomup', None, _('operate bottom up, reversing the order that ACTION is applied')),
          ],
-         _('hg subrepo [-r] [-a] [-c] [ACTION] '))
+         _('hg subrepo [-r] [-a] [-c] [-b] [ACTION] '))
 }
