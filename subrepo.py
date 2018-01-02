@@ -9,8 +9,23 @@
 
 from mercurial.i18n import _
 from hgext.fetch import fetch
-from mercurial import hg, util, commands
+from mercurial import hg, util, commands, cmdutil
 import os, string
+
+# Macro extension meta-data
+cmdtable = {}
+command = cmdutil.command(cmdtable)
+
+@command('subrepo',
+	[
+	('r', 'recurse', None, _('operate recursively within each subrepository')),
+	('a', 'all', None, _('operate in root repo as well as recursively within each subrepository')),
+	('c', 'reclone', None, _('reclone all missing but registered subrepositories (as defined in .hgsub), ' +
+	'leaving existing ones intact; this does not look at nor modify .hgsubstate! ' +
+	'If an ACTION is specified it will execute after recloning all missing subrepos.')),
+	('b', 'bottomup', None, _('operate bottom up, reversing the order that ACTION is applied'))
+	],
+	_('hg subrepo [-r] [-a] [-c] [-b] [ACTION] '))
 
 def subrepo(ui, repo, action=None, **opts):
     '''allows for easy(er) management of mutiple subrepositories at once
@@ -181,17 +196,3 @@ def recloneSubrepo(ui, local, remote):
     hg.clone(ui, remote, dest=local)
 
 
-# Macro extension meta-data
-cmdtable = {
-    "subrepo":
-        (subrepo,
-         [
-          ('r', 'recurse', None, _('operate recursively within each subrepository')),
-          ('a', 'all', None, _('operate in root repo as well as recursively within each subrepository')),
-          ('c', 'reclone', None, _('reclone all missing but registered subrepositories (as defined in .hgsub), ' +
-		  'leaving existing ones intact; this does not look at nor modify .hgsubstate! ' +
-		  'If an ACTION is specified it will execute after recloning all missing subrepos.')),
-		  ('b', 'bottomup', None, _('operate bottom up, reversing the order that ACTION is applied')),
-         ],
-         _('hg subrepo [-r] [-a] [-c] [-b] [ACTION] '))
-}
