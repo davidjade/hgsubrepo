@@ -9,12 +9,13 @@
 
 from mercurial.i18n import _
 from hgext.fetch import fetch
-from mercurial import hg, util, commands, cmdutil
+from mercurial import hg, util, commands, registrar
+from mercurial.utils import procutil
 import os, string
 
 # Macro extension meta-data
 cmdtable = {}
-command = cmdutil.command(cmdtable)
+command = registrar.command(cmdtable)
 
 @command('subrepo',
 	[
@@ -158,7 +159,7 @@ def doHgTextCommand(ui, repoPath, commandText):
     ui.status("* %s\n" % repoPath)
     currentwd = os.getcwd()
     os.chdir(repoPath)
-    pout = util.popen("hg %s" % commandText)
+    pout = procutil.popen("hg %s" % commandText)
     ui.status(pout.read())
     os.chdir(currentwd)
 
