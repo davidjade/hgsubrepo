@@ -173,8 +173,9 @@ def ListRepo(ui, repoPath, remotePath):
 def getSubreposFromHgsub(repo):
     # XXX arguably this could, or should use:
     #  mercurial.subrepo.state(repo['.'])
-    f = repo.wopener('.hgsub')
-    return [map(string.strip, line.split('=')) for line in f]
+    ctx = repo['.']
+    print [(subpath, ctx.substate[subpath][0]) for subpath in ctx.substate]
+    return [(subpath, ctx.substate[subpath][0]) for subpath in ctx.substate]
 
 
 # reclone all missing subrepos
